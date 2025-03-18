@@ -9,10 +9,11 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface UserMapper {
 
-    @Select("select * from t_user where id = #{id}")
-    User findById(Long id);
 
     @Insert("insert into t_user(id, nickname, password) values(#{id}, #{nickname}, #{password})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(User user);
+
+    @Select("select * from t_user where id = #{id}")
+    User findByUserId(long id);
 }

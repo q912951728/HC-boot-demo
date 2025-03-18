@@ -1,5 +1,6 @@
 server:
   port: 8080
+  address: 0.0.0.0
 
 spring:
   datasource:
@@ -13,11 +14,14 @@ spring:
     user:
       name: 18070960411
       password: 123456
-      enabled: true
 
 
-mybatis-plus:
-  mapper-locations: classpath*:/mapper/*Mapper.xml
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
   type-aliases-package: com.ztj.hcboot.pojo
+  configuration:
+    map-underscore-to-camel-case: true
+
+
 
 

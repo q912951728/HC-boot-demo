@@ -3,7 +3,6 @@ package com.ztj.hcboot.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.ztj.hcboot.vo.RespBeanEnum;
 
 @Data
 @NoArgsConstructor
@@ -11,7 +10,7 @@ import com.ztj.hcboot.vo.RespBeanEnum;
 public class RespBean {
     private long code;
     private String message;
-    private Object obj;
+    private Object result;
 
     /**
      * 成功返回结果
@@ -29,6 +28,7 @@ public class RespBean {
     public static RespBean success(Object obj){
         return new RespBean(RespBeanEnum.SUCCESS.getCode(), RespBeanEnum.SUCCESS.getMessage(), obj);
     }
+
 
     /**
      * 失败返回结果

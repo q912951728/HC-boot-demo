@@ -19,7 +19,7 @@ public class InitDatabase implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // 检查用户是否存在，不存在则创建
-        User user = userMapper.findById(18070960411L);
+        User user = userMapper.findByUserId(18070960411L);
 
         if (user == null) {
             User newUser = new User();
