@@ -6,6 +6,7 @@ import com.ztj.hcboot.util.SecurityUtils;
 import com.ztj.hcboot.vo.GoodsVo;
 import com.ztj.hcboot.vo.RespBean;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,11 +58,11 @@ public class GoodsController {
     @GetMapping("/detail")
     public RespBean toList(HttpServletRequest request, @RequestParam("id") Long goodsId) {
         Long id = securityUtils.getCurrentUserId(request);
-        System.out.println("当前用户id为:" + id);
-        List<GoodsVo> goodsVoList = goodsService.findGoodsVoDetail(goodsId);
+        System.out.println("detail接口，用户id为:" + id);
+        GoodsVo goodsVo = goodsService.findGoodsVoDetail(goodsId);
 
 
-        return RespBean.success(goodsVoList);
+        return RespBean.success(goodsVo);
     }
 
 

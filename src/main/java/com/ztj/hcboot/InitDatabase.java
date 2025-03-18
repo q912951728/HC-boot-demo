@@ -29,7 +29,7 @@ public class InitDatabase implements CommandLineRunner {
 
             System.out.println(newUser);
 
-            userMapper.insert(newUser); // 解除注释以启用插入操作
+            userMapper.insertOne(newUser);
             System.out.println("用户不存在，创建用户：" + newUser.getNickname());
         }
     }

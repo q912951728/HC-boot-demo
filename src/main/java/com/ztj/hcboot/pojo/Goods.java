@@ -1,7 +1,10 @@
 package com.ztj.hcboot.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -12,7 +15,10 @@ import java.math.BigDecimal;
 * @author zsx
 */
 @Data
-public class Goods{
+@EqualsAndHashCode(callSuper = false)
+@TableName("t_goods")
+public class Goods implements Serializable {
+    private static final long serialVersionUID = 1L;
 
 
     /**

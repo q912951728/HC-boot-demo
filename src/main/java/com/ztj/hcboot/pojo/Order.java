@@ -1,7 +1,10 @@
 package com.ztj.hcboot.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -13,7 +16,10 @@ import java.util.Date;
 * @author zsx
 */
 @Data
-public class Order {
+@EqualsAndHashCode
+@TableName("t_order")
+public class Order  implements Serializable {
+    private static final long serialVersionUID = 1L;
 
 
     /**

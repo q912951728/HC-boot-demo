@@ -50,4 +50,11 @@
                 left join t_seckill_goods as sg on g.id = sg.goods_id
         where g.id = #{goodsId}
     </select>
+
+    <select id="findGoodsStock" resultType="java.lang.Integer">
+        select
+        goods_stock
+        from t_goods
+        where id = #{goodsId}
+    </select>
 </mapper>

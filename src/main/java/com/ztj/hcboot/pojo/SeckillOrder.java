@@ -1,6 +1,10 @@
 package com.ztj.hcboot.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
 
 
 /**
@@ -11,8 +15,10 @@ import lombok.Data;
 * @author zsx
 */
 @Data
-public class SeckillOrder {
-
+@EqualsAndHashCode
+@TableName("t_seckill_order")
+public class SeckillOrder implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     /**
      * 秒杀订单id

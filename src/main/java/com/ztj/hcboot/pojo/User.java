@@ -1,15 +1,22 @@
 package com.ztj.hcboot.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+@EqualsAndHashCode
+@TableName("t_user")
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * 用户id，手机号码
      */

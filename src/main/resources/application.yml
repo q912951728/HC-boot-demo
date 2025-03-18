@@ -15,12 +15,11 @@ spring:
       name: 18070960411
       password: 123456
 
-
-mybatis:
-  mapper-locations: classpath:mapper/*Mapper.xml
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/*Mapper.xml
   type-aliases-package: com.ztj.hcboot.pojo
-  configuration:
-    map-underscore-to-camel-case: true
+
+ # mapper-locations: classpath:mapper/*Mapper.xml
 
 
 

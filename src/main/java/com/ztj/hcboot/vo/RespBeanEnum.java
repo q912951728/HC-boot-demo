@@ -19,6 +19,7 @@ public enum RespBeanEnum {
     EMPTY_STOCK(500213,"库存不足"),
     REPEATE_ERROR(500214,"不能重复下单"),
     ORDER_NOT_EXIST(500215,"订单不存在"),
+    SESSION_ERROR(500216,"会话已过期"),
     ;
 
     private final Integer code;

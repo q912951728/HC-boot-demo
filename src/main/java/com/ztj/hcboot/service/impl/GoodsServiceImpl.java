@@ -1,6 +1,8 @@
 package com.ztj.hcboot.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ztj.hcboot.mapper.GoodsMapper;
+import com.ztj.hcboot.pojo.Goods;
 import com.ztj.hcboot.service.IGoodsService;
 import com.ztj.hcboot.vo.GoodsVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,7 @@ import java.util.List;
 * @author zsx
 */
 @Service
-public class GoodsServiceImpl implements IGoodsService {
+public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService {
 
 
     @Autowired
@@ -33,7 +35,7 @@ public class GoodsServiceImpl implements IGoodsService {
     }
 
     @Override
-    public List<GoodsVo> findGoodsVoDetail(Long goodsId) {
+    public GoodsVo findGoodsVoDetail(Long goodsId) {
         return goodsMapper.findGoodsVoDetail(goodsId);
     }
 

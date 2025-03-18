@@ -1,5 +1,7 @@
 package com.ztj.hcboot.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.ztj.hcboot.pojo.Goods;
 import com.ztj.hcboot.vo.GoodsVo;
 
 import java.util.List;
@@ -11,7 +13,7 @@ import java.util.List;
 *  张是小
 * @author zsx
 */
-public interface IGoodsService{
+public interface IGoodsService extends IService<Goods> {
 
     /**
      * 查询商品列表
@@ -24,5 +26,5 @@ public interface IGoodsService{
      * @param goodsId
      * @return
      */
-    List<GoodsVo> findGoodsVoDetail(Long goodsId);
+    GoodsVo findGoodsVoDetail(Long goodsId);
 }

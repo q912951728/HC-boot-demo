@@ -41,12 +41,20 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- MyBatis -->
+        <!-- MyBatis-Plus -->
         <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>3.0.3</version>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>3.5.10.1</version>
         </dependency>
+
+        <!-- 添加 mybatis-plus-extension 依赖 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>3.5.10.1</version>
+        </dependency>
+
         <!-- MyBatis-Plus 代码生成器依赖 -->
         <dependency>
             <groupId>com.baomidou</groupId>
