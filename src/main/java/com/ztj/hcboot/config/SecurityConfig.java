@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/authenticate","register","getjwt").permitAll() // 允许访问登录端点
+                        .requestMatchers("/authenticate","register","getjwt","seckill/mq").permitAll() // 允许访问登录端点
                         .anyRequest().authenticated() // 其他请求需要认证
                 )
                 .sessionManagement(session -> session

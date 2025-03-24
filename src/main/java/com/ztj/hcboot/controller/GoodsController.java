@@ -8,12 +8,16 @@ import com.ztj.hcboot.vo.RespBean;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -56,13 +60,20 @@ public class GoodsController {
      * @return
      */
     @GetMapping("/detail")
-    public RespBean toList(HttpServletRequest request, @RequestParam("id") Long goodsId) {
+    public ResponseEntity<RespBean> detail(HttpServletRequest request, @RequestParam("id") Long goodsId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setCacheControl(CacheControl.maxAge(3600, TimeUnit.MINUTES).cachePublic());
+
+
+
         Long id = securityUtils.getCurrentUserId(request);
         System.out.println("detail接口，用户id为:" + id);
         GoodsVo goodsVo = goodsService.findGoodsVoDetail(goodsId);
 
 
-        return RespBean.success(goodsVo);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(RespBean.success(goodsVo));
     }
 
 

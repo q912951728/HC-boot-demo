@@ -16,4 +16,6 @@ public interface SeckillGoodsMapper extends BaseMapper<SeckillGoods> {
 
     Integer findSeckillGoodsStock(Long goodsId);
 
+
+    int updateStock(Long goodsId);
 }

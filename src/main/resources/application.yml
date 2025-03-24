@@ -3,17 +3,96 @@ server:
   address: 0.0.0.0
 
 spring:
+
+  #Rabbitmq
+  rabbitmq:
+    # 服务器地址
+    host: 192.168.43.129
+    username: guest
+    password: guest
+    # 虚拟主机
+    virtual-host: /
+    port: 5672
+    listener:
+      simple:
+        #消费者最小数量
+        concurrency: 10
+        #消费者最大数量
+        max-concurrency: 10
+        #限制每个消费者一次消费的消息数量
+        prefetch: 1
+        #启动时是否默认启动容器，默认true
+        auto-startup: true
+        #被拒绝时重新进入队列
+        default-requeue-rejected: true
+    template:
+      retry:
+        #发表重试 默认false
+        enabled: true
+        #重试间隔时间 默认1000ms
+        initial-interval: 1000ms
+        #重试最大次数 默认3此
+        max-attempts: 3
+        #重试最大间隔时间 默认10000ms
+        max-interval: 10000ms
+        #重试间隔倍数 默认1
+        multiplier: 1
+
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/seckill?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
 
+  data:
+    redis:
+      # 服务器地址
+      host: 192.168.43.129
+      # 端口
+      port: 6379
+      # 数据库
+      database: 0
+      # 超时时间
+      timeout: 10s
+      lettuce:
+        pool:
+          # 最大连接数（默认8）
+          max-active: 8
+          # 最大连接阻塞等待时间（默认-1）
+          max-wait: 10000ms
+          # 最大空闲连接数（默认8）
+          max-idle: 200
+          # 最小空闲连接数（默认0）
+          min-idle: 0
+
+
+
 
   security:
     user:
       name: 18070960411
       password: 123456
+  web:
+    #静态资源处理
+    resources:
+      add-mappings: true
+      cache:
+        cachecontrol:
+          # 缓存时间
+          max-age: 3600
+          #允许浏览器缓存
+          cache-public: true
+#      chain:
+#        #资源链自动缓存，默认启动
+#        cache: true
+#        # 启用资源链，默认金庸
+#        enabled: true
+#        # 启用压缩，默认金庸
+#        compressed: true
+#        # 启用H5应用缓存，默认金庸
+#        html-application-cache: true
+      static-locations: classpath:/static/
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/*Mapper.xml

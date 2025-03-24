@@ -1,16 +1,14 @@
 package com.ztj.hcboot.controller;
 
 
+import com.ztj.hcboot.rabbitmq.MQSender;
 import com.ztj.hcboot.service.ISeckillOrderService;
 import com.ztj.hcboot.util.SecurityUtils;
 import com.ztj.hcboot.vo.RespBean;
 import com.ztj.hcboot.vo.RespBeanEnum;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/seckill")
@@ -20,6 +18,10 @@ public class SeckillOrderController {
 
     @Autowired
     private ISeckillOrderService seckillOrderService;
+
+    @Autowired
+    private MQSender mqSender;
+
 
     /**
      * 秒杀订单接口
@@ -39,5 +41,16 @@ public class SeckillOrderController {
 
         return seckillOrderService.doSeckill(userId,goodsId);
     }
+
+
+
+    @GetMapping("/mq")
+    public void mq() {
+        mqSender.send("hello");
+        return;
+    }
+
+
+
 
 }
