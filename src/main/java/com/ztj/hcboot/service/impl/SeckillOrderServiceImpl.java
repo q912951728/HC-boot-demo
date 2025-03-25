@@ -1,160 +1,153 @@
 package com.ztj.hcboot.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ztj.hcboot.mapper.GoodsMapper;
-import com.ztj.hcboot.mapper.OrderMapper;
-import com.ztj.hcboot.mapper.SeckillGoodsMapper;
 import com.ztj.hcboot.mapper.SeckillOrderMapper;
-import com.ztj.hcboot.pojo.Order;
 import com.ztj.hcboot.pojo.SeckillGoods;
+import com.ztj.hcboot.pojo.SeckillMessage;
 import com.ztj.hcboot.pojo.SeckillOrder;
+import com.ztj.hcboot.rabbitmq.MQSender;
 import com.ztj.hcboot.service.ISeckillGoodsService;
 import com.ztj.hcboot.service.ISeckillOrderService;
-import com.ztj.hcboot.vo.GoodsVo;
 import com.ztj.hcboot.vo.RespBean;
 import com.ztj.hcboot.vo.RespBeanEnum;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
 
 @Service
+@Slf4j
 public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, SeckillOrder> implements ISeckillOrderService {
 
     @Autowired
-    private GoodsMapper goodsMapper;
+    private StringRedisTemplate redisTemplate;
 
     @Autowired
-    private SeckillGoodsMapper seckillGoodsMapper;
+    private MQSender mqSender;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private ISeckillGoodsService seckillGoodsService;
 
     @Autowired
-    private OrderMapper orderMapper;
+    private SeckillOrderMapper seckillOrderMapper;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private RedisScript<Long> script;
 
+
+    //内存标记，减少 Redis 访问
+    private final Map<Long, Boolean> emptyStockMap = new HashMap<>();
+
+    private Integer count = 0;
 
     @Override
     @Transactional
     public RespBean doSeckill(Long userId, Long goodsId) {
-//        //判断秒杀库存是否存在
-//        Integer SeckillStock = seckillGoodsMapper.findSeckillGoodsStock(goodsId);
-//
-//
-//        if (SeckillStock == null || SeckillStock <= 0) {
-//            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
-//        }
-//
-//        //判断是否重复抢购
-//        SeckillOrder seckillOrder = this.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", userId).eq("goods_id", goodsId));
-//
-//
-//        if(seckillOrder != null){
-//            return RespBean.error(RespBeanEnum.REPEATE_ERROR);
-//        }
-//
-//        //减库存，下订单，写入秒杀订单
-//        SeckillGoods seckillGoods = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goodsId));
-//
-//        seckillGoods.setStockCount(seckillGoods.getStockCount() - 1);
-//        seckillGoodsService.updateById(seckillGoods);
-//
-//        GoodsVo Goods = goodsMapper.findGoodsVoDetail(goodsId);
-//        //生成订单
-//        Order order = new Order();
-//        order.setUserId(userId);
-//        order.setGoodsId(goodsId);
-//        order.setDeliveryAddrId(0L);
-//        order.setGoodsName(Goods.getGoodsName());
-//        order.setGoodsCount(1);
-//        order.setGoodsPrice(Goods.getSeckillPrice());
-//        order.setOrderChannel(1);
-//        order.setStatus(0);
-//        order.setCreateDate(new Date());
-//        orderMapper.insert(order);
-//        //生成秒杀订单
-//        SeckillOrder newSeckillOrder = new SeckillOrder();
-//        newSeckillOrder.setUserId(userId);
-//        newSeckillOrder.setOrderId(order.getId());
-//        newSeckillOrder.setGoodsId(goodsId);
-//        this.save(newSeckillOrder);
-//
-//        return RespBean.success(order);
-
-
-        //从 Redis 中获取库存
-        String stockKey = "seckill:stock:" + goodsId;
-        String seckillStock = redisTemplate.opsForValue().get(stockKey);
-        if (seckillStock == null || Long.parseLong(seckillStock) <= 0) {
-            // 如果库存不足，直接返回
+        //检查内存标记，减少 Redis 访问
+        if (Boolean.TRUE.equals(emptyStockMap.get(goodsId))) {
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
 
-
-        //判断是否重复抢购
+        //使用 Redis 原子操作预扣库存
+        String stockKey = "seckill:stock:" + goodsId;
+        //Long stock = redisTemplate.opsForValue().decrement(stockKey);
+        Long stock = redisTemplate.execute(script, Collections.singletonList(stockKey));
+        if(stock == null || stock < 0){
+            emptyStockMap.put(goodsId, true);
+            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
+        //防止重复下单
         String userOrderKey = "seckill:order:" + userId + ":" + goodsId;
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(userOrderKey))) {
+        Boolean isOrdered = redisTemplate.hasKey(userOrderKey);
+        if (Boolean.TRUE.equals(isOrdered)) {
+            // 已下单，回滚库存
+            redisTemplate.opsForValue().increment(stockKey);
             return RespBean.error(RespBeanEnum.REPEATE_ERROR);
         }
 
-        //预扣库存（减少 Redis 的库存）
-        Long stock = redisTemplate.opsForValue().decrement(stockKey);
-        if (stock == null || stock < 0) {
-            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        //发送消息队列处理后续订单逻辑
+        try {
+            String message = objectMapper.writeValueAsString(new SeckillMessage(userId, goodsId));
+            mqSender.send(message);
+            count++;
+            System.out.println("countimpl:"+count);
+
+        } catch (JsonProcessingException e) {
+            log.error("消息转换异常：{}", e.getMessage());
+            // MQ 发送失败，回滚库存 & 删除订单 key
+            redisTemplate.opsForValue().increment(stockKey);
+            redisTemplate.delete(userOrderKey);
+            return RespBean.error(RespBeanEnum.MQ_SEND_ERROR);
         }
 
-        //同步减少数据库中的库存
-        SeckillGoods seckillGoods = seckillGoodsMapper.selectById(goodsId);
-        if (seckillGoods != null && seckillGoods.getStockCount() > 0) {
-            // 使用乐观锁减少库存，确保高并发时库存一致
-            int rows = seckillGoodsMapper.updateStock(goodsId);
-            if (rows == 0) {
-                // 如果更新失败，说明库存已经被其他线程扣减，返回库存不足
-                redisTemplate.opsForValue().increment(stockKey); // 回滚 Redis 库存
-                return RespBean.error(RespBeanEnum.EMPTY_STOCK);
-            }
+        return RespBean.success(0); // 0 代表排队中
+    }
+
+    /**
+     * 获取秒杀结果
+     * @param userId
+     * @param goodsId
+     * @return  orderId:成功 -1:失败  0:排队中
+     */
+    @Override
+    public Long getSeckillResult(Long userId, Long goodsId) {
+        SeckillOrder seckillOrder = seckillOrderMapper.selectOne(new QueryWrapper<SeckillOrder>().eq("user_id", userId).eq("goods_id", goodsId));
+
+        System.out.println("seckillOrder:"+seckillOrder);
+
+        if(seckillOrder != null) {
+            return seckillOrder.getOrderId();
+        }else if (Boolean.TRUE.equals(redisTemplate.hasKey("seckill:order:" + userId + ":" + goodsId))) {
+            return 0L;
+        }else {
+            return -1L;
         }
-
-        //生成订单
-        GoodsVo goods = goodsMapper.findGoodsVoDetail(goodsId);  // 获取商品详情
-        if (goods == null) {
-            return RespBean.error(RespBeanEnum.GOODS_NOT_EXIST);
-        }
-        Order order = new Order();
-        order.setUserId(userId);
-        order.setGoodsId(goodsId);
-        order.setGoodsName(goods.getGoodsName());
-        order.setGoodsPrice(goods.getSeckillPrice());
-        order.setGoodsCount(1);
-        order.setDeliveryAddrId(0L);
-        order.setOrderChannel(1);
-        order.setStatus(0);
-        order.setCreateDate(new Date());
-        order.setPayDate(null);
-        orderMapper.insert(order);
-
-        System.out.println("order::::" + order);
-
-        //生成秒杀订单
-        SeckillOrder newSeckillOrder = new SeckillOrder();
-        newSeckillOrder.setUserId(userId);
-        newSeckillOrder.setOrderId(order.getId());
-        newSeckillOrder.setGoodsId(goodsId);
-        this.save(newSeckillOrder);
-
-        System.out.println("newSeckillOrder::::" + newSeckillOrder);
-
-        //在redis标记该用户已秒杀
-        redisTemplate.opsForValue().set(userOrderKey, "1");
-
-        return RespBean.success(order);
 
     }
 
+    @Override
+    public RespBean getSeckillPath(Long userId, Long goodsId) {
+        UUID uuid = UUID.randomUUID();
+        redisTemplate.opsForValue().set("seckillPath:" + userId + ":" + goodsId, uuid.toString(), 60, TimeUnit.MINUTES);
+
+        return RespBean.success(uuid.toString());
+    }
+
+    /**
+     * 校验秒杀路径
+     * @param userId
+     * @param path
+     * @param goodsId
+     * @return
+     */
+    @Override
+    public boolean equalsSeckillPath(Long userId, String path, Long goodsId) {
+        return Objects.equals(redisTemplate.opsForValue().get("seckillPath:" + userId + ":" + goodsId), path);
+    }
+
+    @PostConstruct
+    public void preloadSeckillStock() {
+        List<SeckillGoods> seckillGoodsList = seckillGoodsService.list(new QueryWrapper<>());
+        for (SeckillGoods goods : seckillGoodsList) {
+            String stockKey = "seckill:stock:" + goods.getGoodsId();
+            if (Boolean.FALSE.equals(redisTemplate.hasKey(stockKey))) { // 避免覆盖已有数据
+                redisTemplate.opsForValue().set(stockKey, String.valueOf(goods.getStockCount()));
+            }
+            emptyStockMap.put(goods.getGoodsId(), false);
+        }
+        log.info("秒杀商品库存已预加载到 Redis: {}", seckillGoodsList);
+    }
 }

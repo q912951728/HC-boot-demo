@@ -14,8 +14,12 @@ public class MQSender {
     private RabbitTemplate rabbitTemplate;
 
 
+    /**
+     * 发送秒杀消息
+     * @param message
+     */
     public void send(Object message) {
         log.info("send message: {}", message);
-        rabbitTemplate.convertAndSend("queue", message);
+        rabbitTemplate.convertAndSend("seckillExchange","seckill.message", message);
     }
 }

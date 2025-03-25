@@ -8,4 +8,9 @@ public interface ISeckillOrderService extends IService<SeckillOrder> {
 
     RespBean doSeckill(Long userId, Long goodsId);
 
+    Long getSeckillResult(Long userId, Long goodsId);
+
+    RespBean getSeckillPath(Long userId, Long goodsId);
+
+    boolean equalsSeckillPath(Long userId, String path, Long goodsId);
 }

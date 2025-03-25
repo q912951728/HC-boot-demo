@@ -20,7 +20,10 @@ public enum RespBeanEnum {
     REPEATE_ERROR(500214,"不能重复下单"),
     ORDER_NOT_EXIST(500215,"订单不存在"),
     SESSION_ERROR(500216,"会话已过期"),
-    GOODS_NOT_EXIST(500217,"商品不存在")
+    GOODS_NOT_EXIST(500217,"商品不存在"),
+    MQ_SEND_ERROR(500218,"MQ发送失败"),
+    REQUEST_ILLEGAL(500219,"非法请求")
+
     ;
 
     private final Integer code;
