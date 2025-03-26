@@ -143,9 +143,7 @@ public class SeckillOrderServiceImpl extends ServiceImpl<SeckillOrderMapper, Sec
         List<SeckillGoods> seckillGoodsList = seckillGoodsService.list(new QueryWrapper<>());
         for (SeckillGoods goods : seckillGoodsList) {
             String stockKey = "seckill:stock:" + goods.getGoodsId();
-            if (Boolean.FALSE.equals(redisTemplate.hasKey(stockKey))) { // 避免覆盖已有数据
-                redisTemplate.opsForValue().set(stockKey, String.valueOf(goods.getStockCount()));
-            }
+            redisTemplate.opsForValue().set(stockKey, String.valueOf(goods.getStockCount()));
             emptyStockMap.put(goods.getGoodsId(), false);
         }
         log.info("秒杀商品库存已预加载到 Redis: {}", seckillGoodsList);

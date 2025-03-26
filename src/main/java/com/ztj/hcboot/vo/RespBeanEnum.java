@@ -22,7 +22,9 @@ public enum RespBeanEnum {
     SESSION_ERROR(500216,"会话已过期"),
     GOODS_NOT_EXIST(500217,"商品不存在"),
     MQ_SEND_ERROR(500218,"MQ发送失败"),
-    REQUEST_ILLEGAL(500219,"非法请求")
+    REQUEST_ILLEGAL(500219,"非法请求"),
+    CAPTCHA_ERROR(500220,"验证码错误"),
+    CAPTCHA_EXPIRED(500221,"验证码已过期")
 
     ;
 
